@@ -1,8 +1,11 @@
 const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 80;
+const router = express.Router();
+const PORT = process.env.PORT || 8080;
 
 
-app.get('/', (req, res) => {    res.json({message: 'Hello' })});
+router.get('/', (req, res) => {    res.json({message: 'Hello' })});
+
+app.use('/rest', router);
 
 app.listen(PORT, function() {   console.log("Listening on port: " + PORT)});
