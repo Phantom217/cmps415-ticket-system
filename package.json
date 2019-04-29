@@ -1,16 +1,29 @@
 {
-  "name": "415-example",
+  "name": "cmps415-ticket-system",
   "version": "1.0.0",
-  "description": "This is for Dr. Burris",
+  "description": "",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "run": "node server.js"
+    "dev": "node_modules/.bin/nodemon --harmony -e js",
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Nicholas Moran",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/phantom217/cmps415-ticket-system.git"
+  },
+  "keywords": [],
+  "author": "Tyler Oalman",
   "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/phantom217/cmps415-ticket-system/issues"
+  },
+  "homepage": "https://github.com/phantom217/cmps415-ticket-system#readme",
   "dependencies": {
-    "chalk": "^2.3.0",
-    "express": "^4.16.2"
+    "chalk": "^2.4.2",
+    "express": "^4.16.4"
+  },
+  "devDependencies": {
+    "morgan": "^1.9.1",
+    "nodemon": "^1.18.11"
   }
 }
