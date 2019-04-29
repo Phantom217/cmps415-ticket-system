@@ -85,3 +85,6 @@ typings/
 
 # broken directory
 working/
+
+# Packages
+*.7z
