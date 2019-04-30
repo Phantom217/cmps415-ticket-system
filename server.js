@@ -44,11 +44,11 @@ router.get('/list', function (req,res) {
 
 /* Endpoint for retrieving a ticket object at URL/rest/ticket/#id */
 router.get('/ticket/:id', function (req,res) {
-    for ( i = 0; i < myArray.length; i++ )
+    for ( i = 0; i < tickets.length; i++ )
     {
-        if (myArray[i].id === req.params.id)
+        if (tickets[i].id === req.params.id)
         {
-            ticket.myArray[i];
+            ticket.tickets[i];
         }
     }
     res.status(200).send(JSON.stringify(ticket));
