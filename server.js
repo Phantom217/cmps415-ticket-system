@@ -1,86 +1,86 @@
 var express = require('express');
-var chalk = require('chalk');
+var bodyParser = require('body-parser');
+var mongodb = require('mongodb');
+var ObjectID = mongodb.ObjectID;
+
+var TICKETS_COLLECTION = 'tickets';
+
 var app = express();
-var router = express.Router();
-var port = process.env.PORT || 80;
+app.use(bodyParser.json());
 
-var tickets = [
+/* Create a database variable outside of the database connection  */
+/* callback to reuse the connection pool in your app */
+var db;
+
+/* Connect to the database before starting the application server */
+mongodb.MongoClient.connect(process.env.MONGODB_URI || "mongodb://localhost:27017/test", function (err, client) {
+    if (err)
     {
-        "id": 35436,
-        "created_at": "2015-07-20T22:55:29Z",
-        "updated_at": "2016-05-05T10:38:52Z",
-        "type": "incident",
-        "subject": "MFP not working right",
-        "description": "PC Load Letter? What does that even mean???",
-        "priority": "med",
-        "status": "open",
-        "recipient": "support_example@selu.edu",
-        "submitter": "Michael_bolton@selu.edu",
-        "assignee_id": 235323,
-        "follower_ids": [235323, 234],
-        "tags": ["enterprise", "printers"],
-    },
-    {
-        "id": 234,
-        "created_at": "2015-07-20T22:55:29Z",
-        "updated_at": "2016-05-05T10:38:52Z",
-        "type": "incident",
-        "subject": "MFP not working right",
-        "description": "PC Load Letter? What does that even mean???",
-        "priority": "med",
-        "status": "open",
-        "recipient": "support_example@selu.edu",
-        "submitter": "Michael_bolton@selu.edu",
-        "assignee_id": 235323,
-        "follower_ids": [235323, 234],
-        "tags": ["enterprise", "printers"],
+        console.log(err);
+        process.exit(1);
     }
-];
 
-/* Endpoint for listing all ticket objects at URL/rest/list */
-router.get('/list', function (req,res) {
-    res.status(200).send(JSON.stringify(tickets));
+/*     Save database object from the callback for reuse */
+    db = client.db();
+    console.log("Database connection ready");
+
+/*     Initialize the app */
+    var server = app.listen(process.env.PORT || 8080, function () {
+        var port = server.address().port;
+        console.log("App now running on port ", port);
+    });
 });
 
-/* Endpoint for retrieving a ticket object at URL/rest/ticket/#id */
-router.get('/ticket/:id', function (req,res) {
-    for ( i = 0; i < tickets.length; i++ )
-    {
-        if (tickets[i].id === req.params.id)
+/* TICKETS API ROUTES BELOW */
+
+/* Generic error handler used by all endpoints */
+function handleError(res, reason, message, code)
+{
+    console.log("ERROR: " + reason);
+    res.status(code || 500).json({ "error" : message });
+}
+
+app.get('/rest/tickets', function(req, res) {
+    db.collection(TICKETS_COLLECTION).find({}).toArray(function(err, docs) {
+        if (err)
         {
-            ticket.tickets[i];
+            handleError(res, err.message, "Failed to get tickets.");
         }
+        else
+        {
+            res.status(200).json(docs);
+        }
+    });
+});
+
+app.post('rest/ticket', function(req, res) {
+    var new_ticket = req.body;
+    new_ticket.createDate = new Date();
+
+    if (!req.body.created_at   ||
+        !req.body.updated_at   ||
+        !req.body.type         ||
+        !req.body.subject      ||
+        !req.body.description  ||
+        !req.body.priority     ||
+        !req.body.submitter    ||
+        !req.body.assignee_id  ||
+        !req.body.follower_ids ||
+        !req.body.tags)
+    {
+        handleError(res, "Incomplete Ticket Info", "Fill All Fields", 400);
     }
-    res.status(200).send(JSON.stringify(ticket));
+    else
+    {
+        db.collection(TICKETS_COLLECTION).insertOne(new_ticket, function (err, doc) {
+            if (err)
+            {
+                handleError(res, err.message, "Failed to create ticket.");
+            }
+            else
+            {
+                res.status(201).json(doc.ops[0]);
+            }
+        });
+    }
 });
-
-/**
- *  Endpoint for posting a new ticket. Add JSON object to request
- *  body section of Postman for URL/ticket
- */
-router.post('/ticket', function (req, res) {
-    ticket = {
-        id: req.body.id,
-        createdat: req.body.createdat,
-        updatedat: req.body.updatedat,
-        type: req.body.type,
-        subject: req.body.subject,
-        description: req.body.description,
-        priority: req.body.priority,
-        status: req.body.status,
-        recipient: req.body.recipient,
-        submitter: req.body.submitter,
-        assignee_id: req.body.assignee_id,
-        follower_id: req.body.follower_id,
-        tags: req.body.tags
-    };
-    tickets.push(ticket);
-    res.status(200).send(JSON.stringify(ticket));
-});
-
-
-app.use('/rest', router);
-
-app.listen(port, function() {
-    console.log("Node app is running at localhost: " + port)
-  });
